@@ -2,7 +2,7 @@
 # Each category has specific documents required for obtaining a construction or renovation permit.
 document_rules = {
   "Category1": {
-    "Construction": [
+    "New": [
       "Completed application form",
       "Copy of land ownership certificate or equivalent",
       "National ID or passport",
@@ -11,7 +11,7 @@ document_rules = {
       "Structural stability justification (if applicable)",
       "Proof of payment for building permit application fee"
     ],
-    "Renovation": [
+    "Refurbishment1": [
       "Completed application form",
       "Copy of land ownership certificate or equivalent",
       "National ID or passport",
@@ -19,7 +19,7 @@ document_rules = {
       "Structural stability justification (if applicable)",
       "Proof of payment for building permit application fee"
     ],
-    "Extension": [
+    "Refurbishment2": [
       "Completed application form",
       "Copy of land ownership certificate or equivalent",
       "National ID or passport",
@@ -30,7 +30,7 @@ document_rules = {
     ]
   },
   "Category2": {
-    "Construction": [
+    "New": [
       "Completed application form",
       "Copy of land ownership certificate or equivalent",
       "National ID or passport",
@@ -44,12 +44,12 @@ document_rules = {
       "Proof of professional liability insurance",
       "Proof of payment for building permit application fee"
     ],
-    "Renovation": [
+    "Refurbishment1": [
       "All documents for construction, adapted to renovation",
       "Architectural and structural drawings showing modifications",
       "Environmental and fire safety updates (if applicable)"
     ],
-    "Extension": [
+    "Refurbishment2": [
       "All documents for construction, adapted to extension area",
       "Updated site and architectural plans",
       "Updated environmental and technical documentation"

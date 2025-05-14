@@ -10,7 +10,7 @@ const StartApplication = () => {
   const handleContinue = () => {
     if (category && permitType) {
       navigate('/upload-documents', {
-        state: { category, permitType },
+        state: { category, permit: permitType },
       });
     } else {
         alert('Please choose both category and permit type.');
@@ -30,12 +30,12 @@ const StartApplication = () => {
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="">-- Select Category --</option>
-            <option value="Category 1">Category 1</option>
-            <option value="Category 2">Category 2</option>
-            <option value="Category 3">Category 3</option>
-            <option value="Category 4">Category 4</option>
-            <option value="Category 5">Category 5</option>
-            <option value="Category 6">Category 6</option>
+            <option value="Category1">Category 1</option>
+            <option value="Category2">Category 2</option>
+            <option value="Category3">Category 3</option>
+            <option value="Category4">Category 4</option>
+            <option value="Category5">Category 5</option>
+            <option value="Category6">Category 6</option>
         </select>
       </div>
 

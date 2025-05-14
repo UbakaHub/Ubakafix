@@ -5,16 +5,21 @@ const DocumentUpload = () => {
   const location = useLocation();
   const { category, permit } = location.state || {};
 
+
+  console.log("Category from location.state", category);
+  console.log("Permit from location.state", permit);
+  console.log("LOCATION OBJECT", location)
+
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
   const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: File | null }>({});
 
   useEffect(() => {
     const fetchRequiredDocs = async () => {
       try {
-        const res = await fetch(`https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/document-rules/{category}/{permit}`);
+        const res = await fetch(`https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/document-rules/${category}/${permit}`);
         const data = await res.json();
         setRequiredDocs(data.requiredDocuments);
-
+        console.log("Fetching from API:", category, permit);
         // Set initial uploadedDocs state
         const initialDocs = Object.fromEntries(data.requiredDocuments.map((doc: string) => [doc, null]));
         setUploadedDocs(initialDocs);
@@ -33,17 +38,36 @@ const DocumentUpload = () => {
     setUploadedDocs(prev => ({ ...prev, [docType]: file }));
   };
 
-  const handleCheckDocuments = () => {
-    console.log('Uploaded Documents:', uploadedDocs);
-    alert('Mock: Documents submitted for validation!');
-  };
+  const handleCheckDocuments = async () => {
+  const formData = new FormData();
+
+  Object.entries(uploadedDocs).forEach(([docType, file]) => {
+    if (file) {
+      formData.append("files", file); // Must match backend name
+    }
+  });
+
+  try {
+    const response = await fetch("https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/upload-files/", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log("Server response:", result);
+    alert("✅ Documents sent! Check console for confirmation.");
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    alert("❌ Upload failed. Please try again.");
+  }
+};
+
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
       <h2>Upload Required Documents</h2>
       <p>
-        Based on your selection (<strong>{category}</strong>, <strong>{permit}</strong>), upload
-        the following:
+       Please upload the following:
       </p>
 
       {requiredDocs.length === 0 && <p style={{ color: 'gray' }}>No documents required.</p>}
