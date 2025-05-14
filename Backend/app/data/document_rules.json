@@ -1,0 +1,14 @@
+{
+    "Category 1": {
+      "No Permit Required": []
+    },
+    "Category 2": {
+      "New Construction": ["ID Card", "Land Ownership Proof", "Environmental Assessment"],
+      "Renovation": ["ID Card", "Photos of Current Structure"]
+    },
+    "Category 3": {
+      "New Construction": ["Architectural Plan", "Engineering Plan", "Land Title"],
+      "Renovation": ["Engineering Plan", "Renovation Proposal", "ID Card"]
+    }
+  }
+  

@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { documentRules } from '../utils/documentRules';
 
 const DocumentUpload = () => {
   const location = useLocation();
   const { category, permit } = location.state || {};
 
-  const requiredDocs =
-    documentRules[category]?.[permit] || ['No matching document requirements.'];
+  const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
+  const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: File | null }>({});
 
-  const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: File | null }>(
-    Object.fromEntries(requiredDocs.map(doc => [doc, null]))
-  );
+  useEffect(() => {
+    const fetchRequiredDocs = async () => {
+      try {
+        const res = await fetch(`https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/document-rules/{category}/{permit}`);
+        const data = await res.json();
+        setRequiredDocs(data.requiredDocuments);
+
+        // Set initial uploadedDocs state
+        const initialDocs = Object.fromEntries(data.requiredDocuments.map((doc: string) => [doc, null]));
+        setUploadedDocs(initialDocs);
+      } catch (error) {
+        console.error("Failed to fetch document rules:", error);
+      }
+    };
+
+    if (category && permit) {
+      fetchRequiredDocs();
+    }
+  }, [category, permit]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
     const file = e.target.files?.[0] || null;
@@ -31,6 +46,8 @@ const DocumentUpload = () => {
         the following:
       </p>
 
+      {requiredDocs.length === 0 && <p style={{ color: 'gray' }}>No documents required.</p>}
+
       {requiredDocs.map(doc => (
         <div key={doc} style={{ marginBottom: '1rem' }}>
           <label>{doc}</label>
@@ -43,9 +60,11 @@ const DocumentUpload = () => {
         </div>
       ))}
 
-      <button onClick={handleCheckDocuments} style={{ marginTop: '2rem', padding: '0.5rem 1rem' }}>
-        Check Documents
-      </button>
+      {requiredDocs.length > 0 && (
+        <button onClick={handleCheckDocuments} style={{ marginTop: '2rem', padding: '0.5rem 1rem' }}>
+          Check Documents
+        </button>
+      )}
     </div>
   );
 };
