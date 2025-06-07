@@ -1,30 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import ZipPreviewModal from '../components/ZipPreviewModal'; 
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const DocumentUpload = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { category, permit } = location.state || {};
-
-
-  console.log("Category from location.state", category);
-  console.log("Permit from location.state", permit);
-  console.log("LOCATION OBJECT", location)
 
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
   const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: File | null }>({});
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [filesToPreview, setFilesToPreview] = useState<File[]>([]);
 
   useEffect(() => {
     const fetchRequiredDocs = async () => {
       try {
-        const res = await fetch(`https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/document-rules/${category}/${permit}`);
+        const res = await fetch(
+          `${API_BASE_URL.replace(/\/$/, '')}/api/document-rules/${category}/${permit}`
+        );
         const data = await res.json();
+
+        if (!data || !Array.isArray(data.requiredDocuments)) {
+          console.error('Invalid response:', data);
+          return;
+        }
+
         setRequiredDocs(data.requiredDocuments);
-        console.log("Fetching from API:", category, permit);
-        // Set initial uploadedDocs state
         const initialDocs = Object.fromEntries(data.requiredDocuments.map((doc: string) => [doc, null]));
         setUploadedDocs(initialDocs);
       } catch (error) {
-        console.error("Failed to fetch document rules:", error);
+        console.error('Failed to fetch document rules:', error);
       }
     };
 
@@ -35,49 +42,53 @@ const DocumentUpload = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
     const file = e.target.files?.[0] || null;
-    setUploadedDocs(prev => ({ ...prev, [docType]: file }));
+    setUploadedDocs((prev) => ({ ...prev, [docType]: file }));
   };
 
-  const handleCheckDocuments = async () => {
-  const formData = new FormData();
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} bytes`;
+    else if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
 
-  Object.entries(uploadedDocs).forEach(([docType, file]) => {
-    if (file) {
-      formData.append("files", file); // Must match backend name
+  const handleCheckDocuments = () => {
+    const files = Object.values(uploadedDocs).filter((file): file is File => file !== null);
+    if (files.length === 0) {
+      alert("Please upload at least one document before proceeding.");
+      return;
     }
-  });
+    setFilesToPreview(files);
+    setShowPreviewModal(true);
+  };
 
-  try {
-    const response = await fetch("https://reimagined-space-orbit-wr57pg975gqxc54r9-8000.app.github.dev/api/upload-files/", {
-      method: "POST",
-      body: formData,
+  const handleModalSubmit = () => {
+    setShowPreviewModal(false);
+    navigate('/review-application', {
+      state: {
+        category,
+        permit,
+        requiredDocs,
+        uploadedDocs,
+        files: filesToPreview,
+      }
     });
-
-    const result = await response.json();
-    console.log("Server response:", result);
-    alert("✅ Documents sent! Check console for confirmation.");
-  } catch (error) {
-    console.error("Error uploading files:", error);
-    alert("❌ Upload failed. Please try again.");
-  }
-};
-
+  };
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
       <h2>Upload Required Documents</h2>
-      <p>
-       Please upload the following:
-      </p>
+      <p>Please upload the following:</p>
 
       {requiredDocs.length === 0 && <p style={{ color: 'gray' }}>No documents required.</p>}
 
-      {requiredDocs.map(doc => (
+      {requiredDocs.map((doc) => (
         <div key={doc} style={{ marginBottom: '1rem' }}>
           <label>{doc}</label>
           <input type="file" onChange={(e) => handleFileChange(e, doc)} />
           {uploadedDocs[doc] ? (
-            <span style={{ color: 'green', marginLeft: '1rem' }}>✅ Uploaded</span>
+            <span style={{ color: 'green', marginLeft: '1rem' }}>
+              ✅ {uploadedDocs[doc]!.name} ({formatFileSize(uploadedDocs[doc]!.size)})
+            </span>
           ) : (
             <span style={{ color: 'red', marginLeft: '1rem' }}>❌ Missing</span>
           )}
@@ -86,8 +97,16 @@ const DocumentUpload = () => {
 
       {requiredDocs.length > 0 && (
         <button onClick={handleCheckDocuments} style={{ marginTop: '2rem', padding: '0.5rem 1rem' }}>
-          Check Documents
+          Review Documents
         </button>
+      )}
+
+      {showPreviewModal && (
+        <ZipPreviewModal
+          files={filesToPreview}
+          onClose={() => setShowPreviewModal(false)}
+          onSubmit={handleModalSubmit}
+        />
       )}
     </div>
   );
