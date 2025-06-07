@@ -1,9 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, Form
 from pathlib import Path
 from typing import List
+from PyPDF2 import PdfMerger
+from fastapi.responses import StreamingResponse
 import json
 import sys
 import os
+import io
+import zipfile
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -28,7 +32,7 @@ async def upload_files(
     permit: str = Form(...),
     files:List[UploadFile] = File(...)
 ):
-    uploaded_filenames = [file.filename.lower() for file in files]
+    uploaded_filenames = [file.filename.lower() for file in files if file.filename is not None]
     required_docs = document_rules.get(category, {}).get(permit, [])
 
     missing_docs = []
@@ -43,3 +47,24 @@ async def upload_files(
         "missing": missing_docs,
         "status": "complete" if not missing_docs else "incomplete"
     }
+
+    pdf_merger = PdfMerger()
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for file in files:
+            contents = await file.read()
+
+            if file.filename and file.filename.lower().endswith('.pdf'):
+                pdf_merger.append(io.BytesIO(contents))
+
+            zip_file.writestr(file.filename if file.filename is not None else "unnamed_file", contents)
+
+            merged_pdf = io.BytesIO()
+            pdf_merger.write(merged_pdf)
+            pdf_merger.close()
+            merged_pdf.seek(0)
+            zip_file.writestr("merged.pdf", merged_pdf.read())
+    
+    zip_buffer.seek(0)
+    return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=application_package.zip"})
+    
