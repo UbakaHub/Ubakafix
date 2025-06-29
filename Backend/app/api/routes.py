@@ -67,4 +67,3 @@ async def upload_files(
     
     zip_buffer.seek(0)
     return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": "attachment; filename=application_package.zip"})
-    

@@ -1,0 +1,21 @@
+const { category, permit, uploadedDocs, user } = req.body;
+
+// Insert or find the user
+let { data: [existingUser], error: userError } = await supabase
+  .from('users')
+  .select('*')
+  .eq('email', user.email);
+
+if (!existingUser) {
+  const { data: [newUser], error: insertError } = await supabase
+    .from('users')
+    .insert([user])
+    .select();
+  existingUser = newUser;
+}
+
+const { data: app, error: appError } = await supabase
+  .from('applications')
+  .insert([{ fullName, category, permit, user_id: existingUser.id }])
+  .select()
+  .single();
