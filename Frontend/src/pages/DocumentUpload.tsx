@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import ZipPreviewModal from '../components/ZipPreviewModal'; 
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const DocumentUpload = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { category, permit } = location.state || {};
+  const { category, permit, fullName, phone, email } = location.state || {};
 
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
   const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: File | null }>({});
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [filesToPreview, setFilesToPreview] = useState<File[]>([]);
 
   useEffect(() => {
     const fetchRequiredDocs = async () => {
@@ -51,62 +48,51 @@ const DocumentUpload = () => {
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
-  const handleCheckDocuments = () => {
-    const files = Object.values(uploadedDocs).filter((file): file is File => file !== null);
-    if (files.length === 0) {
-      alert("Please upload at least one document before proceeding.");
+  const handleSubmitDocuments = () => {
+    const hasFiles = Object.values(uploadedDocs).some((file) => file !== null);
+    if (!hasFiles) {
+      alert("Please upload at least one document before continuing.");
       return;
     }
-    setFilesToPreview(files);
-    setShowPreviewModal(true);
-  };
 
-  const handleModalSubmit = () => {
-    setShowPreviewModal(false);
     navigate('/review-application', {
       state: {
+        fullName,
+        email,
+        phone,
         category,
         permit,
         requiredDocs,
         uploadedDocs,
-        files: filesToPreview,
-      }
+      },
     });
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
+    <div className="page-container">
       <h2>Upload Required Documents</h2>
       <p>Please upload the following:</p>
 
       {requiredDocs.length === 0 && <p style={{ color: 'gray' }}>No documents required.</p>}
 
       {requiredDocs.map((doc) => (
-        <div key={doc} style={{ marginBottom: '1rem' }}>
-          <label>{doc}</label>
+        <div key={doc} className="file-input-wrapper">
+          <label className="form-label">{doc}</label>
           <input type="file" onChange={(e) => handleFileChange(e, doc)} />
           {uploadedDocs[doc] ? (
-            <span style={{ color: 'green', marginLeft: '1rem' }}>
+            <span className="status-uploaded">
               ✅ {uploadedDocs[doc]!.name} ({formatFileSize(uploadedDocs[doc]!.size)})
             </span>
           ) : (
-            <span style={{ color: 'red', marginLeft: '1rem' }}>❌ Missing</span>
+            <span className="status-missing">❌ Missing</span>
           )}
         </div>
       ))}
 
       {requiredDocs.length > 0 && (
-        <button onClick={handleCheckDocuments} style={{ marginTop: '2rem', padding: '0.5rem 1rem' }}>
-          Review Documents
+        <button onClick={handleSubmitDocuments} className="btn-primary" style={{ marginTop: '2rem' }}>
+          Continue to Review
         </button>
-      )}
-
-      {showPreviewModal && (
-        <ZipPreviewModal
-          files={filesToPreview}
-          onClose={() => setShowPreviewModal(false)}
-          onSubmit={handleModalSubmit}
-        />
       )}
     </div>
   );

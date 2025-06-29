@@ -29,7 +29,7 @@
     font-weight: 500;
   }
   
-  select {
+  select, .input{
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ccc;
@@ -52,3 +52,27 @@
     background-color: #004080;
   }
   
+  .alert-banner {
+  background-color: #f8d7da; /* light red */
+  color: #842029; /* dark red */
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #842029;
+  line-height: 1;
+  padding: 0;
+  margin-left: 15px;
+}
