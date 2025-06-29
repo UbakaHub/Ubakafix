@@ -46,23 +46,13 @@ cd UbakaFix
 npm install
 ```
 
-### 3. Set up environment variables
-
-Create a `.env` file in the root:
-
-```env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-### 4. Run locally
+### 3. Run locally
 
 ```bash
 npm run dev
 ```
 
-### 5. Build for production
+### 4. Build for production
 
 ```bash
 npm run build
